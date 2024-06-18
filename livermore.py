@@ -55,13 +55,13 @@ def get_livermore_chart(start_ts, end_ts, params=[0.06, 0.03], bar="1D"):
             case 1:
                 # 当前次级回升栏记录
                 if price > last_value[1]:
-                    # 上升趋势3点突破
                     if uptrend and price > cur_trend_key_values[0]:
+                        # 上升趋势恢复
                         current_recording_column = 3
                         cur_line[3] = price
                         last_value[3] = price
                         cur_trend_key_values = [0, 0]
-                    elif not uptrend and price > cur_trend_key_values[0]:
+                    elif not uptrend and price > cur_trend_key_values[0] * (1+params[1]) > 0:
                         # 下降趋势中，向上3点突破
                         current_recording_column = 3
                         cur_line[3] = price
@@ -104,13 +104,13 @@ def get_livermore_chart(start_ts, end_ts, params=[0.06, 0.03], bar="1D"):
             case 2:
                 # 当前在自然回升栏记录
                 if price > last_value[2]:
-                    # 上升趋势3点突破
                     if uptrend and price > cur_trend_key_values[0]:
+                        # 上升趋势恢复
                         current_recording_column = 3
                         cur_line[3] = price
                         last_value[3] = price
                         cur_trend_key_values = [0, 0]
-                    elif not uptrend and price > cur_trend_key_values[0]:
+                    elif not uptrend and price > cur_trend_key_values[0] * (1+params[1]) > 0:
                         # 下降趋势中，向上3点突破
                         current_recording_column = 3
                         cur_line[3] = price
@@ -185,8 +185,8 @@ def get_livermore_chart(start_ts, end_ts, params=[0.06, 0.03], bar="1D"):
             case 5:
                 # 当前在自然回撤栏记录
                 if price < last_value[5]:
-                    if not uptrend and price < cur_trend_key_values[1] * (1 - params[1]):
-                        # 当前在下降趋势，如果价格突破上一个关键点3点以下，则转为下降趋势
+                    if not uptrend and price < cur_trend_key_values[1]:
+                        # 下降趋势恢复
                         current_recording_column = 4
                         cur_line[4] = price
                         last_value[4] = price
@@ -238,8 +238,8 @@ def get_livermore_chart(start_ts, end_ts, params=[0.06, 0.03], bar="1D"):
             case 6:
                 # 当前在次级回撤栏记录
                 if price < last_value[5]:
-                    if not uptrend and price < cur_trend_key_values[1] * (1 - params[1]):
-                        # 当前在下降趋势，如果价格突破上一个关键点3点以下，则转为下降趋势
+                    if not uptrend and price < cur_trend_key_values[1]:
+                        # 下降趋势恢复
                         current_recording_column = 4
                         cur_line[4] = price
                         last_value[4] = price
@@ -293,9 +293,21 @@ def get_livermore_chart(start_ts, end_ts, params=[0.06, 0.03], bar="1D"):
     return livermore_chart
 
 if __name__ == '__main__':
-    start_ts = convert_date_string_to_milliseconds("2022-10-13 00:00:00")
-    end_ts = convert_date_string_to_milliseconds("2023-12-22 00:00:00")
-    chart = get_livermore_chart(start_ts, end_ts, params=[0.06, 0.03], bar="1D")
+    start_ts = convert_date_string_to_milliseconds("2024-05-12 21:29:00")
+    end_ts = convert_date_string_to_milliseconds("2023-05-12 21:31:00")
+
+    result = marketDataAPI.get_history_candlesticks(
+        instId="BTC-USDT",
+        bar="1s",
+        after=end_ts,
+        before=start_ts
+    )
+    for candle in result.get("data")[::-1]:
+        print([convert_milliseconds_to_date_string(candle[0]), "开盘价", candle[1]])
+        print([convert_milliseconds_to_date_string(candle[0]), "收盘价", candle[4]])
+
+
+    #chart = get_livermore_chart(start_ts, end_ts, params=[0.02, 0.01], bar="1m")
 
     # tb = pt.PrettyTable()
     # tb.field_names = ["日期","次级回升","自然回升","上升趋势","下降趋势","自然回撤","次级回撤"]
@@ -303,9 +315,9 @@ if __name__ == '__main__':
     #     tb.add_row(line)
     # print(tb)
 
-    df = pandas.DataFrame(chart, columns=["日期","次级回升","自然回升","上升趋势","下降趋势","自然回撤","次级回撤"])
-    df.style.map(lambda x: "background-color: red" if isinstance(x, str) and x.endswith("-o") else "background-color: white")
-    df.style.map(lambda x: "background-color: green" if isinstance(x, str) and x.endswith("-x") else "background-color: white")
-    df.to_excel('output.xlsx', index=False)
+    # df = pandas.DataFrame(chart, columns=["日期","次级回升","自然回升","上升趋势","下降趋势","自然回撤","次级回撤"])
+    # df.style.map(lambda x: "background-color: red" if isinstance(x, str) and x.endswith("-o") else "background-color: white")
+    # df.style.map(lambda x: "background-color: green" if isinstance(x, str) and x.endswith("-x") else "background-color: white")
+    # df.to_excel('output.xlsx', index=False)
 
 
