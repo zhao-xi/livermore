@@ -2,9 +2,9 @@ import okx.MarketData as MarketData
 import pandas
 import prettytable as pt
 from utils import convert_milliseconds_to_date_string, convert_date_string_to_milliseconds
-from market_data import get_date_and_close_price
+from market_data import get_candlesticks
 
-def get_livermore_chart(start_ts, end_ts, params=[0.06, 0.03], bar="1D"):
+def get_livermore_chart(start_ts, end_ts, params=[0.06, 0.03], bar="1D", trade_pair="BTC-USTD"):
     """
     获取利弗莫尔表格，默认第一个点记录于“上升趋势”
     :param start_ts: 起始毫秒时间戳
@@ -14,7 +14,7 @@ def get_livermore_chart(start_ts, end_ts, params=[0.06, 0.03], bar="1D"):
     :return: 利弗莫尔表格，长度为6的二维数组，分别为次级回升、自然回升、上升趋势、下降趋势、自然回撤、次级回撤
     """
     # 获取指数K线数据，整理为日期、收盘价格式
-    datetime_and_close_price = get_date_and_close_price(start_ts, end_ts, bar)
+    datetime_and_close_price = get_candlesticks(start_ts, end_ts, bar, trade_pair)
 
     # livermore_chart，利弗莫尔表格为六列二维数组
     # 每个元素为[日期，次级回升栏，自然回升栏，上升趋势栏，下降趋势栏，自然回撤栏，次级回撤栏]的数组

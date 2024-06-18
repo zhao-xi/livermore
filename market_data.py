@@ -4,13 +4,13 @@ import okx.MarketData as MarketData
 flag = "0"  # 实盘:0 , 模拟盘：1
 marketDataAPI = MarketData.MarketAPI(flag=flag)
 
-def get_candlesticks(start_ts, end_ts, bar="1D"):
+def get_candlesticks(start_ts, end_ts, bar="1D", trade_pair="BTC-USTD"):
     # 获取指数K线数据，整理为日期、收盘价格式
     finished = False
     candlesticks = []  # 日期、收盘价
     while not finished:
         result = marketDataAPI.get_history_candlesticks(
-            instId="BTC-USDT",
+            instId=trade_pair,
             bar=bar,
             after=end_ts,
             before=start_ts
