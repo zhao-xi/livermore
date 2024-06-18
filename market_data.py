@@ -3,6 +3,8 @@ import okx.MarketData as MarketData
 
 flag = "0"  # 实盘:0 , 模拟盘：1
 marketDataAPI = MarketData.MarketAPI(flag=flag)
+day_highest = {}
+day_lowest = {}
 
 def get_date_and_close_price(start_ts, end_ts, bar="1D"):
     # 获取指数K线数据，整理为日期、收盘价格式
