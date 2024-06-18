@@ -26,3 +26,4 @@ def get_date_and_close_price(start_ts, end_ts, bar="1D"):
         else:
             finished = True
     datetime_and_close_price = datetime_and_close_price[::-1]
+    return datetime_and_close_price
