@@ -2,13 +2,7 @@ import okx.MarketData as MarketData
 import pandas
 import prettytable as pt
 from utils import convert_milliseconds_to_date_string, convert_date_string_to_milliseconds
-
-flag = "0"  # 实盘:0 , 模拟盘：1
-
-marketDataAPI = MarketData.MarketAPI(flag=flag)
-
-day_highest = {}
-day_lowest = {}
+from market_data import get_date_and_close_price
 
 def get_livermore_chart(start_ts, end_ts, params=[0.06, 0.03], bar="1D"):
     """
@@ -20,24 +14,7 @@ def get_livermore_chart(start_ts, end_ts, params=[0.06, 0.03], bar="1D"):
     :return: 利弗莫尔表格，长度为6的二维数组，分别为次级回升、自然回升、上升趋势、下降趋势、自然回撤、次级回撤
     """
     # 获取指数K线数据，整理为日期、收盘价格式
-    finished = False
-    datetime_and_close_price = []  # 日期、收盘价
-    while not finished:
-        result = marketDataAPI.get_history_candlesticks(
-            instId="BTC-USDT",
-            bar=bar,
-            after=end_ts,
-            before=start_ts
-        )
-        for candle in result.get("data"):
-            datetime_and_close_price.append([convert_milliseconds_to_date_string(candle[0]), candle[4]])
-            day_highest[convert_milliseconds_to_date_string(candle[0])] = float(candle[2])
-            day_lowest[convert_milliseconds_to_date_string(candle[0])] = float(candle[3])
-        if len(result.get("data")) > 0 and float(result.get("data")[-1][0]) > start_ts:
-            end_ts = int(result.get("data")[-1][0])
-        else:
-            finished = True
-    datetime_and_close_price = datetime_and_close_price[::-1]
+    datetime_and_close_price = get_date_and_close_price(start_ts, end_ts, bar)
 
     # livermore_chart，利弗莫尔表格为六列二维数组
     # 每个元素为[日期，次级回升栏，自然回升栏，上升趋势栏，下降趋势栏，自然回撤栏，次级回撤栏]的数组
