@@ -20,8 +20,8 @@ def get_candlesticks(start_ts, end_ts, bar="1D", trade_pair="BTC-USTD"):
             candlesticks.append({
                 "time": convert_milliseconds_to_date_string(candle[0]),
                 "open": candle[1],
-                "highest": candle[2],
-                "lowest": candle[3],
+                "high": candle[2],
+                "low": candle[3],
                 "close": candle[4]
             })
         if len(result.get("data")) > 0 and float(result.get("data")[-1][0]) > start_ts:
@@ -33,13 +33,34 @@ def get_candlesticks(start_ts, end_ts, bar="1D", trade_pair="BTC-USTD"):
 
 
 def cal_max(candlesticks, period):
+    max_prices = []
+    for candle in candlesticks:
+        max_prices.append(candle.get("high"))
     # 计算period期间最高价格
-    pass
+    max_prices_in_period = [-1] * len(candlesticks)
+    # 每个元素是过去period天的最高价
+    for i in range(len(candlesticks)):
+        if i < period - 1:
+            max_prices_in_period[i] = -1
+        else:
+            max_prices_in_period[i] = max(max_prices[i - period + 1: i + 1])
+    return max_prices_in_period
 
 
 def cal_min(candlesticks, period):
     # 计算period期间最低价格
-    pass
+    min_prices = []
+    for candle in candlesticks:
+        min_prices.append(candle.get("low"))
+    # 计算period期间最高价格
+    min_prices_in_period = [-1] * len(candlesticks)
+    # 每个元素是过去period天的最高价
+    for i in range(len(candlesticks)):
+        if i < period - 1:
+            min_prices_in_period[i] = -1
+        else:
+            min_prices_in_period[i] = min(min_prices[i - period + 1: i + 1])
+    return min_prices_in_period
 
 
 def cal_avg(candlesticks, period):
@@ -50,3 +71,15 @@ def cal_avg(candlesticks, period):
 def cal_avg_exp(candlesticks, period):
     # 计算period期间EMA均线
     pass
+
+
+if __name__ == '__main__':
+    # test cal_max
+    candlesticks = [{"high":5}, {"high":2}, {"high":3}, {"high":6}, {"high":2}, {"high":1}, {"high":0}, {"high":9}]
+    maxes = cal_max(candlesticks, 3)
+    print(maxes)
+
+    # test cal_min
+    candlesticks = [{"low":5}, {"low":2}, {"low":3}, {"low":6}, {"low":5}, {"low":1}, {"low":0}, {"low":9}]
+    mins = cal_min(candlesticks, 3)
+    print(mins)
