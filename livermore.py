@@ -4,7 +4,7 @@ import prettytable as pt
 from utils import convert_milliseconds_to_date_string, convert_date_string_to_milliseconds
 from market_data import get_candlesticks
 
-def get_livermore_chart(start_ts, end_ts, params=[0.06, 0.03], bar="1D", trade_pair="BTC-USTD"):
+def get_livermore_chart(start_ts, end_ts, params=[0.06, 0.03], bar="1D", trade_pair="BTC-USDT"):
     """
     获取利弗莫尔表格，默认第一个点记录于“上升趋势”
     :param start_ts: 起始毫秒时间戳

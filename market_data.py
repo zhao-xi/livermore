@@ -4,7 +4,7 @@ import okx.MarketData as MarketData
 flag = "0"  # 实盘:0 , 模拟盘：1
 marketDataAPI = MarketData.MarketAPI(flag=flag)
 
-def get_candlesticks(start_ts, end_ts, bar="1D", trade_pair="BTC-USTD"):
+def get_candlesticks(start_ts, end_ts, bar="1D", trade_pair="BTC-USDT"):
     # 获取指数K线数据，整理为日期、收盘价格式
     finished = False
     candlesticks = []  # 日期、收盘价
@@ -74,6 +74,9 @@ def cal_avg_exp(candlesticks, period):
 
 
 if __name__ == '__main__':
+    start_ts = convert_date_string_to_milliseconds("2023-05-12 21:29:00")
+    end_ts = convert_date_string_to_milliseconds("2024-05-12 21:31:00")
+    get_candlesticks(start_ts, end_ts)
     # test cal_max
     candlesticks = [{"high":5}, {"high":2}, {"high":3}, {"high":6}, {"high":2}, {"high":1}, {"high":0}, {"high":9}]
     maxes = cal_max(candlesticks, 3)
