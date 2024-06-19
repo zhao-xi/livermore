@@ -16,7 +16,6 @@ def get_candlesticks(start_ts, end_ts, bar="1D", trade_pair="BTC-USDT"):
             before=start_ts
         )
         for candle in result.get("data"):
-            candlesticks.append([convert_milliseconds_to_date_string(candle[0]), candle[4]])
             candlesticks.append({
                 "time": convert_milliseconds_to_date_string(candle[0]),
                 "open": candle[1],
