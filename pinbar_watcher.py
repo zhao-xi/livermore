@@ -55,7 +55,7 @@ def fetch_candles(instId, period, max_retries=5):
 
 def is_candlestick_body_in_third(open_price, close_price, high_price, low_price):
     """
-    判断K线实体是否在上下三分之一范围内
+    判断K线实体是否在上下38.2%范围内
 
     Args:
         open_price (float): 开盘价
@@ -64,22 +64,22 @@ def is_candlestick_body_in_third(open_price, close_price, high_price, low_price)
         low_price (float): 最低价
 
     Returns:
-        bool: 如果K线实体在K线整体范围的上三分之一或下三分之一内，则返回True；否则返回False。
+        bool: 如果K线实体在K线整体范围的上38.2%或下38.2%内，则返回True；否则返回False。
 
-    此函数首先计算K线的整体范围（最高价与最低价之差），然后确定上三分之一和下三分之一的界限。
-    接着，判断开盘价和收盘价是否都位于上三分之一或下三分之一范围内。如果满足任一条件，则返回True，
+    此函数首先计算K线的整体范围（最高价与最低价之差），然后确定上38.2%和下38.2%的界限。
+    接着，判断开盘价和收盘价是否都位于上38.2%或下38.2%范围内。如果满足任一条件，则返回True，
     否则返回False。
     """
     # 计算K线的整体范围
     total_range = high_price - low_price
 
-    # 计算上三分之一和下三分之一的界限
-    upper_third_start = high_price - (total_range / 3)
-    lower_third_end = low_price + (total_range / 3)
+    # 计算上38.2%和下38.2%的界限
+    upper_third_start = high_price - (total_range * 0.382)
+    lower_third_end = low_price + (total_range * 0.382)
 
-    # 判断实体是否在上三分之一范围内
+    # 判断实体是否在上38.2%范围内
     in_upper_third = open_price >= upper_third_start and close_price >= upper_third_start
-    # 判断实体是否在下三分之一范围内
+    # 判断实体是否在下38.2%范围内
     in_lower_third = open_price <= lower_third_end and close_price <= lower_third_end
 
     # 返回结果
