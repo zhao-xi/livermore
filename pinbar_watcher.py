@@ -25,6 +25,7 @@ watch_list = [
 "CELO-USDT","UMA-USDT","IMX-USDT","FLOW-USDT","ACE-USDT","CFX-USDT","BADGER-USDT",
 ]
 
+
 period_list = ["1H"]
 
 # 创建一个嵌套字典来存储 candles 数据
@@ -107,13 +108,42 @@ if __name__ == '__main__':
         print(f"Total time taken: {end_time - start_time} seconds")
         for instId, periods in candles_map.items():
             for period, candles in periods.items():
+
                 # single candle pinbar
                 if is_candlestick_body_in_third(candles[-1].get('open'), candles[-1].get('close'), candles[-1].get('high'), candles[-1].get('low')):
-                    final_res_1.append(f'{instId.split("-")[0]} {period} single pinbar')
+                    is_up_tail = True
+                    open = candles[-1].get('open')
+                    close = candles[-1].get('close')
+                    high = candles[-1].get('high')
+                    low = candles[-1].get('low')
+                    if abs(close - low) > abs(close - high):
+                        is_up_tail = False
+                    if is_up_tail:
+                        if not high > max(candles[-2].get('high'), candles[-3].get('high'), candles[-4].get('high')):
+                            continue
+                    else:
+                        if not low < min(candles[-2].get('low'), candles[-3].get('low'), candles[-4].get('low')):
+                            continue
+                    final_res_1.append(f'{instId.split("-")[0]} {period}')
+
                 # double candle pinbar
                 elif is_candlestick_body_in_third(candles[-2].get('open'), candles[-1].get('close'), max(candles[-2].get('high'), candles[-1].get('high')), min(candles[-2].get('low'), candles[-1].get('low'))):
-                    final_res_2.append(f'{instId.split("-")[0]} {period} double pinbar')
-        if len(final_res_1) != 0 and len(final_res_2) != 0:
+                    is_up_tail = True
+                    open = candles[-2].get('open')
+                    close = candles[-1].get('close')
+                    high = max(candles[-2].get('high'), candles[-1].get('high'))
+                    low = min(candles[-2].get('low'), candles[-1].get('low'))
+                    if abs(close - low) > abs(close - high):
+                        is_up_tail = False
+                    if is_up_tail:
+                        if not high > max(candles[-3].get('high'), candles[-4].get('high'), candles[-5].get('high')):
+                            continue
+                    else:
+                        if not low < min(candles[-3].get('low'), candles[-4].get('low'), candles[-5].get('low')):
+                            continue
+                    final_res_2.append(f'{instId.split("-")[0]} {period}')
+
+        if len(final_res_1) == 0 and len(final_res_2) == 0:
             print("啥也没发现。")
             continue
         print("=============================")
@@ -123,6 +153,4 @@ if __name__ == '__main__':
         if len(final_res_2) != 0:
             print("\n2根K线pinbar:")
             print('\n'.join(final_res_2))
-        messagebox.showinfo("发现pinbar！", "发现pinbar！")
         print("=============================")
-        break

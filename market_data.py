@@ -1,15 +1,20 @@
 from utils import convert_milliseconds_to_date_string, convert_date_string_to_milliseconds
 import okx.MarketData as MarketData
+import time
 
 flag = "0"  # 实盘:0 , 模拟盘：1
 marketDataAPI = MarketData.MarketAPI(flag=flag)
+marketDataAPI.debug = False
+import okx.PublicData as PublicData
+
+publicDataAPI = PublicData.PublicAPI(flag=flag)
 
 def get_candlesticks(start_ts, end_ts, bar="1D", trade_pair="BTC-USDT"):
-    # 获取指数K线数据，整理为日期、收盘价格式
+    # 获取指数K线数据
     finished = False
     candlesticks = []  # 日期、收盘价
     while not finished:
-        result = marketDataAPI.get_history_candlesticks(
+        result = marketDataAPI.get_candlesticks(
             instId=trade_pair,
             bar=bar,
             after=end_ts,
@@ -18,10 +23,10 @@ def get_candlesticks(start_ts, end_ts, bar="1D", trade_pair="BTC-USDT"):
         for candle in result.get("data"):
             candlesticks.append({
                 "time": convert_milliseconds_to_date_string(candle[0]),
-                "open": candle[1],
-                "high": candle[2],
-                "low": candle[3],
-                "close": candle[4]
+                "open": float(candle[1]),
+                "high": float(candle[2]),
+                "low": float(candle[3]),
+                "close": float(candle[4])
             })
         if len(result.get("data")) > 0 and float(result.get("data")[-1][0]) > start_ts:
             end_ts = int(result.get("data")[-1][0])
@@ -61,27 +66,135 @@ def cal_min(candlesticks, period):
             min_prices_in_period[i] = min(min_prices[i - period + 1: i + 1])
     return min_prices_in_period
 
-
-def cal_avg(candlesticks, period):
-    # 计算period期间MA均线
-    pass
-
-
-def cal_avg_exp(candlesticks, period):
-    # 计算period期间EMA均线
-    pass
-
+spots = ["BTC-USDT",
+"ETH-USDT",
+"SOL-USDT",
+"BCH-USDT",
+"PEPE-USDT",
+"BETH-USDT",
+"YFI-USDT",
+"MKR-USDT",
+"STETH-USDT",
+"LTC-USDT",
+"WBTC-USDT",
+"ORDI-USDT",
+"AAVE-USDT",
+"AVAX-USDT",
+"XRP-USDT",
+"ETC-USDT",
+"LINK-USDT",
+"OKB-USDT",
+"BSV-USDT",
+"FIL-USDT",
+"ENS-USDT",
+"UNI-USDT",
+"DOT-USDT",
+"TRB-USDT",
+"APT-USDT",
+"SUI-USDT",
+"NEO-USDT",
+"AR-USDT",
+"XAUT-USDT",
+"TON-USDT",
+"SSV-USDT",
+"COMP-USDT",
+"KSM-USDT",
+"ICP-USDT",
+"XCH-USDT",
+"METIS-USDT",
+"DOGE-USDT",
+"TIA-USDT",
+"NEAR-USDT",
+"WLD-USDT",
+"ATOM-USDT",
+"INJ-USDT",
+"EGLD-USDT",
+"ADA-USDT",
+"EOS-USDT",
+"ONDO-USDT",
+"WIF-USDT",
+"RENDER-USDT",
+"TRX-USDT",
+"ZRO-USDT",
+"LPT-USDT",
+"OM-USDT",
+"USDC-USDT",
+"PNUT-USDT",
+"OP-USDT",
+"BANANA-USDT",
+"AUCTION-USDT",
+"QTUM-USDT",
+"AXS-USDT",
+"CRV-USDT",
+"ILV-USDT",
+"STX-USDT",
+"CORE-USDT",
+"GMX-USDT",
+"MOVR-USDT",
+"SAND-USDT",
+"CTC-USDT",
+"ARB-USDT",
+"ALGO-USDT",
+"LDO-USDT",
+"EIGEN-USDT",
+"MOODENG-USDT",
+"APE-USDT",
+"MORPHO-USDT",
+"XLM-USDT",
+"MASK-USDT",
+"ETHFI-USDT",
+"PENDLE-USDT",
+"IOTA-USDT",
+"ETHW-USDT",
+"FET-USDT",
+"FTM-USDT",
+"KP3R-USDT",
+"CVX-USDT",
+"HBAR-USDT",
+"GAS-USDT",
+"DYDX-USDT",
+"POL-USDT",
+"JUP-USDT",
+"OKT-USDT",
+"OL-USDT",
+"JTO-USDT",
+"NMR-USDT",
+"RAY-USDT",
+"XTZ-USDT",
+"THETA-USDT",
+"ARKM-USDT",
+"ZETA-USDT",
+"MAJOR-USDT",
+"ACT-USDT",
+"PYTH-USDT",
+"STRK-USDT",
+"SUSHI-USDT",
+"YGG-USDT",
+"MANA-USDT",
+"LUNA-USDT",
+"KDA-USDT",
+"BIGTIME-USDT",
+"SNX-USDT",
+"CELO-USDT",
+"UMA-USDT",
+"IMX-USDT",
+"FLOW-USDT",
+"ACE-USDT",
+"CFX-USDT",
+"BADGER-USDT"]
 
 if __name__ == '__main__':
-    start_ts = convert_date_string_to_milliseconds("2023-05-12 21:29:00")
-    end_ts = convert_date_string_to_milliseconds("2024-05-12 21:31:00")
-    get_candlesticks(start_ts, end_ts)
-    # test cal_max
-    candlesticks = [{"high":5}, {"high":2}, {"high":3}, {"high":6}, {"high":2}, {"high":1}, {"high":0}, {"high":9}]
-    maxes = cal_max(candlesticks, 3)
-    print(maxes)
+    # 获取
+    res = {}
+    a = marketDataAPI.get_tickers(instType="SPOT")
+    for item in a["data"]:
+        if '-USDT' in item['instId']:
+            volumeUSDT = float(item["volCcy24h"]) * float(item["last"])
+            if volumeUSDT < 10000000:
+                continue
+            instId = item["instId"]
+            res[instId] = volumeUSDT
+    res = sorted(res.items(), key=lambda x: x[1], reverse=True)
+    for i in range(len(res)):
+        print(f'\"{res[i][0]}\",')
 
-    # test cal_min
-    candlesticks = [{"low":5}, {"low":2}, {"low":3}, {"low":6}, {"low":5}, {"low":1}, {"low":0}, {"low":9}]
-    mins = cal_min(candlesticks, 3)
-    print(mins)
