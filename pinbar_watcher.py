@@ -2,8 +2,9 @@ import time
 import concurrent
 from market_data import get_candlesticks
 from concurrent.futures import ThreadPoolExecutor
-from tkinter import messagebox
-import datetime
+import tkinter as tk
+from tkinter import ttk
+import threading
 
 watch_list = [
 "BTC-USDT","ETH-USDT","SOL-USDT","BCH-USDT","PEPE-USDT","YFI-USDT",
@@ -30,6 +31,8 @@ period_list = ["1H"]
 
 # 创建一个嵌套字典来存储 candles 数据
 candles_map = {}
+final_res_1 = []
+final_res_2 = []
 
 def fetch_candles(instId, period, max_retries=5):
     start_ts = int((time.time() - 60 * 60 * 12) * 1000)  # 12小时前的时间戳（毫秒）
@@ -82,17 +85,59 @@ def is_candlestick_body_in_third(open_price, close_price, high_price, low_price)
     # 返回结果
     return in_upper_third or in_lower_third
 
-if __name__ == '__main__':
-    while True:
-        # 判断当前时间是否是50分0秒~59分59秒，最后10分钟我才会看当前小时K线
-        if datetime.datetime.now().minute < 50:
-            print(f"time：{datetime.datetime.now().hour}:{datetime.datetime.now().minute}, waiting...")
-            time.sleep(60)
-            continue
 
+class App:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Pinbar Monitor")
+
+        # 创建列标题
+        self.tree = ttk.Treeview(root, columns=("Crypto Pair", "Single Pinbar", "Double Pinbar"), show='headings')
+        self.tree.heading("Crypto Pair", text="Crypto Pair")
+        self.tree.heading("Single Pinbar", text="Single Pinbar")
+        self.tree.heading("Double Pinbar", text="Double Pinbar")
+        self.tree.pack(expand=True, fill=tk.BOTH)
+        self.tree.tag_configure('green', background='lime green')
+        self.tree.tag_configure('yellow', background='yellow')
+
+        # 初始化数据
+        self.update_data()
+
+        # 定时更新数据
+        self.update_interval = 5  # 更新间隔，单位：秒
+        self.root.after(self.update_interval * 1000, self.periodic_update)
+
+    def update_data(self):
+        # 清空树视图
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+
+        # 填充树视图
+        for item in watch_list:
+            tags = []
+            in_final_res_1 = item.split("-")[0] in [x.split()[0] for x in final_res_1]
+            in_final_res_2 = item.split("-")[0] in [x.split()[0] for x in final_res_2]
+            if in_final_res_1:
+                tags.append('green')
+            elif in_final_res_2:
+                tags.append('yellow')
+            self.tree.insert("", tk.END, values=(item, in_final_res_1, in_final_res_2), tags=tags)
+
+    def periodic_update(self):
+        self.update_data()
+        # 再次设置定时器
+        self.root.after(self.update_interval * 1000, self.periodic_update)
+
+
+def get_data():
+    global candles_map
+    global final_res_1
+    global final_res_2
+    while True:
         start_time = time.time()
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-            future_to_instId_period = {executor.submit(fetch_candles, instId, period): (instId, period) for instId in watch_list for period in period_list}
+            future_to_instId_period = {executor.submit(fetch_candles, instId, period): (instId, period) for instId in
+                                       watch_list for period in period_list}
             for future in concurrent.futures.as_completed(future_to_instId_period):
                 instId, period = future_to_instId_period[future]
                 try:
@@ -110,9 +155,9 @@ if __name__ == '__main__':
             for period, candles in periods.items():
 
                 # single candle pinbar
-                if is_candlestick_body_in_third(candles[-1].get('open'), candles[-1].get('close'), candles[-1].get('high'), candles[-1].get('low')):
+                if is_candlestick_body_in_third(candles[-1].get('open'), candles[-1].get('close'),
+                                                candles[-1].get('high'), candles[-1].get('low')):
                     is_up_tail = True
-                    open = candles[-1].get('open')
                     close = candles[-1].get('close')
                     high = candles[-1].get('high')
                     low = candles[-1].get('low')
@@ -127,9 +172,10 @@ if __name__ == '__main__':
                     final_res_1.append(f'{instId.split("-")[0]} {period}')
 
                 # double candle pinbar
-                elif is_candlestick_body_in_third(candles[-2].get('open'), candles[-1].get('close'), max(candles[-2].get('high'), candles[-1].get('high')), min(candles[-2].get('low'), candles[-1].get('low'))):
+                elif is_candlestick_body_in_third(candles[-2].get('open'), candles[-1].get('close'),
+                                                  max(candles[-2].get('high'), candles[-1].get('high')),
+                                                  min(candles[-2].get('low'), candles[-1].get('low'))):
                     is_up_tail = True
-                    open = candles[-2].get('open')
                     close = candles[-1].get('close')
                     high = max(candles[-2].get('high'), candles[-1].get('high'))
                     low = min(candles[-2].get('low'), candles[-1].get('low'))
@@ -145,12 +191,19 @@ if __name__ == '__main__':
 
         if len(final_res_1) == 0 and len(final_res_2) == 0:
             print("nothing found")
-            continue
-        print("=============================")
-        if len(final_res_1) != 0:
-            print("1-candle pinbar:")
-            print('\n'.join(final_res_1))
-        if len(final_res_2) != 0:
-            print("\n2-candle pinbar:")
-            print('\n'.join(final_res_2))
-        print("=============================")
+        else:
+            print("=============================")
+            if len(final_res_1) != 0:
+                print("1-candle pinbar:")
+                print('\n'.join(final_res_1))
+            if len(final_res_2) != 0:
+                print("\n2-candle pinbar:")
+                print('\n'.join(final_res_2))
+            print("=============================")
+
+
+if __name__ == '__main__':
+    threading.Thread(target=get_data).start()
+    root = tk.Tk()
+    app = App(root)
+    root.mainloop()
