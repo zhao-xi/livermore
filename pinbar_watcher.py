@@ -144,13 +144,13 @@ if __name__ == '__main__':
                     final_res_2.append(f'{instId.split("-")[0]} {period}')
 
         if len(final_res_1) == 0 and len(final_res_2) == 0:
-            print("啥也没发现。")
+            print("nothing found")
             continue
         print("=============================")
         if len(final_res_1) != 0:
-            print("1根K线pinbar:")
+            print("1-candle pinbar:")
             print('\n'.join(final_res_1))
         if len(final_res_2) != 0:
-            print("\n2根K线pinbar:")
+            print("\n2-candle pinbar:")
             print('\n'.join(final_res_2))
         print("=============================")
